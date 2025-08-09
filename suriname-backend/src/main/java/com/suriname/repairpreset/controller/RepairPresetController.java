@@ -28,7 +28,7 @@ public class RepairPresetController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<PresetResponseDto>> getAllPresets(
-            @RequestParam(value = "category_Id", required = false) Long categoryId
+            @RequestParam(value = "categoryId", required = false) Long categoryId
     )
     {
         List<PresetResponseDto> responseDtos = (categoryId == null)

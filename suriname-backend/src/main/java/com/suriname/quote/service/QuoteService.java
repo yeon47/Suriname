@@ -130,6 +130,7 @@ public class QuoteService {
         System.out.println("접수번호: " + dto.getRequestNo());
         System.out.println("고객동의: " + dto.getCustomerConsent());
         System.out.println("수리기사: " + dto.getEngineerName());
+        System.out.println("수리기사ID: " + dto.getEngineerId());
         
         // 고객 검증
         Customer customer = customerRepository.findByName(dto.getCustomerName())
@@ -143,24 +144,22 @@ public class QuoteService {
             
         // 수리기사 처리 (고객 동의 시)
         Employee engineer = null;
-        if (dto.getCustomerConsent()) {
-            if (dto.getEngineerName() != null && !dto.getEngineerName().trim().isEmpty()) {
-                // 직접 지정된 수리기사가 있는 경우
-                engineer = employeeRepository.findByName(dto.getEngineerName())
-                    .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 수리기사입니다: " + dto.getEngineerName()));
-                System.out.println("지정된 수리기사: " + engineer.getName());
+        if (Boolean.TRUE.equals(dto.getCustomerConsent())) {
+            if (dto.getEngineerId() != null) {
+                engineer = employeeRepository.findById(dto.getEngineerId())
+                        .orElseThrow(() -> new IllegalArgumentException("수리기사를 찾을 수 없습니다. id=" + dto.getEngineerId()));
+                System.out.println("지정된 수리기사(id): " + engineer.getEmployeeId());
             } else {
-                // 랜덤 수리기사 배정
-                Pageable engineerPageable = PageRequest.of(0, 100); // 최대 100명 조회
-                List<Employee> engineers = employeeRepository.findByRole(Employee.Role.ENGINEER, engineerPageable).getContent();
-                if (engineers.isEmpty()) {
-                    throw new IllegalArgumentException("배정 가능한 수리기사가 없습니다.");
-                }
+                Pageable engineerPageable = PageRequest.of(0, 100);
+                List<Employee> engineers = employeeRepository
+                        .findByRole(Employee.Role.ENGINEER, engineerPageable)
+                        .getContent();
+                if (engineers.isEmpty()) throw new IllegalArgumentException("배정 가능한 수리기사가 없습니다.");
                 engineer = engineers.get((int) (Math.random() * engineers.size()));
-                System.out.println("랜덤 배정된 수리기사: " + engineer.getName());
+                System.out.println("랜덤 배정된 수리기사(id): " + engineer.getEmployeeId());
             }
         }
-        
+
         // 수리 항목들을 JSON 형태로 field에 저장하기 위한 문자열 생성
         StringBuilder fieldContent = new StringBuilder();
         fieldContent.append("제품명: ").append(dto.getProductName()).append("\n");
@@ -188,7 +187,7 @@ public class QuoteService {
         Quote savedQuote = quoteRepository.save(quote);
         
         // 고객 동의 시 수리기사 승인 처리
-        if (dto.getCustomerConsent() && engineer != null) {
+        if (Boolean.TRUE.equals(dto.getCustomerConsent()) && engineer != null) {
             savedQuote.approveByEmployee(engineer);
             quoteRepository.save(savedQuote);
         }
@@ -207,6 +206,7 @@ public class QuoteService {
         System.out.println("접수번호: " + dto.getRequestNo());
         System.out.println("고객동의: " + dto.getCustomerConsent());
         System.out.println("수리기사: " + dto.getEngineerName());
+        System.out.println("수리기사ID: " + dto.getEngineerId());
         
         // 기존 견적서 조회
         Quote existingQuote = quoteRepository.findById(quoteId)
@@ -225,24 +225,21 @@ public class QuoteService {
             
         // 수리기사 처리 (고객 동의 시)
         Employee engineer = null;
-        if (dto.getCustomerConsent()) {
-            if (dto.getEngineerName() != null && !dto.getEngineerName().trim().isEmpty()) {
-                // 직접 지정된 수리기사가 있는 경우
-                engineer = employeeRepository.findByName(dto.getEngineerName())
-                    .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 수리기사입니다: " + dto.getEngineerName()));
-                System.out.println("지정된 수리기사: " + engineer.getName());
+        if (Boolean.TRUE.equals(dto.getCustomerConsent())) {
+            if (dto.getEngineerId() != null) {
+                engineer = employeeRepository.findById(dto.getEngineerId())
+                        .orElseThrow(() -> new IllegalArgumentException("수리기사를 찾을 수 없습니다. id=" + dto.getEngineerId()));
+                System.out.println("지정된 수리기사(id): " + engineer.getEmployeeId());
             } else {
-                // 랜덤 수리기사 배정
-                Pageable engineerPageable = PageRequest.of(0, 100); // 최대 100명 조회
+                Pageable engineerPageable = PageRequest.of(0, 100);
                 List<Employee> engineers = employeeRepository.findByRole(Employee.Role.ENGINEER, engineerPageable).getContent();
-                if (engineers.isEmpty()) {
-                    throw new IllegalArgumentException("배정 가능한 수리기사가 없습니다.");
-                }
+                if (engineers.isEmpty()) throw new IllegalArgumentException("배정 가능한 수리기사가 없습니다.");
                 engineer = engineers.get((int) (Math.random() * engineers.size()));
-                System.out.println("랜덤 배정된 수리기사: " + engineer.getName());
+                System.out.println("랜덤 배정된 수리기사(id): " + engineer.getEmployeeId());
             }
         }
-        
+
+
         // 수리 항목들을 JSON 형태로 field에 저장하기 위한 문자열 생성
         StringBuilder fieldContent = new StringBuilder();
         fieldContent.append("제품명: ").append(dto.getProductName()).append("\n");

@@ -10,16 +10,20 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "repair_preset")
+@Table(name = "repair_preset",
+        uniqueConstraints = @UniqueConstraint(name="uq_repair_preset_category_name",
+                columnNames={"category_id","name"}),
+        indexes = @Index(name="idx_repair_preset_category", columnList="category_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class RepairPreset {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "repair_presets_id")
     private Long repairPresetsId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -37,7 +41,8 @@ public class RepairPreset {
 
     @PrePersist
     public void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (isActive == null)  isActive = true;
     }
 
     @Builder
@@ -50,17 +55,5 @@ public class RepairPreset {
 
     public void inactive() {
         this.isActive = false;
-    }
-    
-    // 직접 입력된 수리항목용 생성자 (isActive = false, ID >= 10000)
-    public static RepairPreset createDirectInput(Category category, String name, Integer cost, Long customId) {
-        RepairPreset preset = new RepairPreset();
-        preset.repairPresetsId = customId; // 10000 이상의 ID 직접 할당
-        preset.category = category;
-        preset.name = name;
-        preset.cost = cost;
-        preset.isActive = false; // 비활성화 상태로 생성
-        preset.createdAt = java.time.LocalDateTime.now();
-        return preset;
     }
 }

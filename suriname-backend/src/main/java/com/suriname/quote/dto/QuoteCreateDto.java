@@ -12,6 +12,7 @@ import java.util.List;
 public class QuoteCreateDto {
     private String customerName;
     private String requestNo;
+    private Long engineerId;
     private String engineerName;
     private String productName;
     private Boolean customerConsent; // 고객 동의 여부
